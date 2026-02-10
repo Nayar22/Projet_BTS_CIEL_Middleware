@@ -24,9 +24,9 @@ def insert_measure(sensor_id, value, unit):
     conn.commit()
     cursor.close()
     conn.close()
-    print (f"✔ Données enregistrée : {value}{unit} pour le capteur {sensor_id}")
+    print (f"Données enregistrée : {value}{unit} pour le capteur {sensor_id}")
   except Exception as e:
-    print(f"❌ Erreur MySQL : {e}")
+    print(f"Erreur MySQL : {e}")
 
 # --- LOGIQUE MQTT  ---
 def on_message(client, userdata, msg):
@@ -44,9 +44,9 @@ def on_message(client, userdata, msg):
     # Si le capteur evoie l'humidité
     if 'humidity' in payload:
       hum = payload['humidity']
-      insert_measure(sensor_name, temp, '%')
+      insert_mesure(sensor_name, temp, '%')
   except Exception as e:
-    print(f"⚠ Erreur lors du traitement du message : {e}")
+    print(f"Erreur lors du traitement du message : {e}")
 
 # --- DEMARRAGE DU CLIENT ---
 client = mqtt.Client()
