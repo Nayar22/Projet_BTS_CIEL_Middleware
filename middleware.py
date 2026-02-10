@@ -9,7 +9,7 @@ DB_CONFIG = {
   'host': 'localhost',
   'user': 'admin_projet',
   'password': 'bts2026',
-  'database': 'dmotique_db'
+  'database': 'domotique_db'
 }
 
 # --- LOGIQUE BASE DE DONNEES ---
@@ -18,7 +18,7 @@ def insert_mesure(sensor_id, value, unit):
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
     
-    #Insertopn dans la table 'mesures'
+    #Insertion dans la table 'mesures'
     sql = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
     cursor.execute(sql, (sensor_id, value, unit, datetime.now()))
     conn.commit()
