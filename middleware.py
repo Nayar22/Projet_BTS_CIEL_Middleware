@@ -13,7 +13,7 @@ DB_CONFIG = {
 }
 
 # --- LOGIQUE BASE DE DONNEES ---
-def insert_measure(sensor_id, value, unit):
+def insert_mesure(sensor_id, value, unit):
   try:
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
