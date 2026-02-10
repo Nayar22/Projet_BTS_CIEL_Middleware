@@ -13,19 +13,25 @@ DB_CONFIG = {
 }
 
 # --- LOGIQUE BASE DE DONNEES ---
-def insert_mesure(sensor_id, value, unit):
+def insert_mesure(sensor_name, value, unit):
   try:
     conn = mysql.connector.connect(**DB_CONFIG)
     cursor = conn.cursor()
     
     #Insertion dans la table 'mesures'
-    sql = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
-    cursor.execute(sql, (sensor_id, value, unit, datetime.now()))
-    conn.commit()
+    cursor.execute("SELECT id_capteur FROM capteurs WHERE reference_zigbee = %s", (sensor_name,))
+    result = cursor.fetchone()
+    if result:
+      id_db = result[0]
+      sql = "INSERT INTO mesures (id_capteur, valeur, unite, horodataage) VALUES (%S, %S, %s, %s)"
+      cursor.execute(sql,(id_bd, value, unit, datetime.now()))
+      conn.commit()
+      print (f"OK - Données enregistrée pour ID {id_bd} ({value}{unit})")
+    else:
+      print(f"Attention : Le capteur '{sensor_name}' n'est pas encore dans la table 'capteurs'")
     cursor.close()
     conn.close()
-    print (f"Données enregistrée : {value}{unit} pour le capteur {sensor_id}")
-  except Exception as e:
+  except Exception as e :
     print(f"Erreur MySQL : {e}")
 
 # --- LOGIQUE MQTT  ---
