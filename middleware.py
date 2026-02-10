@@ -19,7 +19,7 @@ def insert_measure(sensor_id, value, unit):
     cursor = conn.cursor()
     
     #Insertopn dans la table 'mesures'
-    sql = "INSERT INTO mesures (id_capteur, valeur, unite, date_mesure) VALUES (%s, %s, %s, %s)"
+    sql = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
     cursor.execute(sql, (sensor_id, value, unit, datetime.now()))
     conn.commit()
     cursor.close()
