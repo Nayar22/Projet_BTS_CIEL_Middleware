@@ -21,6 +21,7 @@ def insert_mesure(sensor_name, value, unit):
     #Insertion dans la table 'mesures'
     query = "SELECT id_capteur FROM capteurs WHERE reference_zigbee = %s"
     cursor.execute(query,(sensor_name,))
+    result = cursor.fetchone()
     if result:
       id_db = result[0]
       sql = "INSERT INTO mesures (id_capteur, valeur, unite, horodataage) VALUES (%s, %s, %s, %s)"
@@ -50,7 +51,7 @@ def on_message(client, userdata, msg):
     # Si le capteur evoie l'humidité
     if 'humidity' in payload:
       hum = payload['humidity']
-      insert_mesure(sensor_name, temp, '%')
+      insert_mesure(sensor_name, hum, '%')
   except Exception as e:
     print(f"Erreur lors du traitement du message : {e}")
 
