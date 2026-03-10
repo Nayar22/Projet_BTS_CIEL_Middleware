@@ -27,12 +27,12 @@ db.connect(err => {
 //Route Principale pour l'etudiant 3 : Récuperer les dernières mesures
 app.get('/api/mesures/last', (req,res) => {
   // Requete SQL utilisant 'horodatage'
-  const sql ='
+  const sql =`
     SELECT c.nom_piece, c.type_donnee, m.valeur, m.unite, m.horodatage
     FROM mesures m
     JOIN capteurs c ON m.id_capteur = c.id_capteur
     WHERE m.horodatage = (SELECT MAX(horodatage) FROM mesures WHERE id_capteur = m.id_capteur)
-  ';
+  `;
   db.query(sql, (err, results) => {
     if (err) {
       console.error(Error('Erreur SQL lors de la lecture :', err.message);
