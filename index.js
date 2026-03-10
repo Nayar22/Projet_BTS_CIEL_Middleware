@@ -45,5 +45,5 @@ app.get('/api/mesures/last', (req,res) => {
 //Lancement du serveur
 app.listen(port, () => {
   console.log('API Domotique active sur le port ${port}');
-  console.log('Adresse pour l'App Mobile : http://192.168.0.56:3000/api/mesures/last');
+  console.log('Adresse pour l app mobile : http://192.168.0.56:3000/api/mesures/last');
 });
