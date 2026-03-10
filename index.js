@@ -35,7 +35,7 @@ app.get('/api/mesures/last', (req,res) => {
   `;
   db.query(sql, (err, results) => {
     if (err) {
-      console.error(Error('Erreur SQL lors de la lecture :', err.message);
+      console.error(Error('Erreur SQL lors de la lecture :', err.message));
       return res.status(500).json({ error: "Erreur serveur" });
     }
     res.json(results);
