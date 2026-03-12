@@ -19,7 +19,7 @@ def insert_measure(sensor_name, value, unit):
         
         # 1. Auto-Découverte : On crée le capteur s'il n'existe pas
         sql_sensor = "INSERT IGNORE INTO capteurs (nom_piece, type_donnee, reference_zigbee) VALUES (%s, %s, %s)"
-        cursor.execute(sql_sensor, ('A definir', 'Inconnu', sensor_name))
+        cursor.execute(sql_sensor, ('A definir', 'A definir', sensor_name))
         conn.commit()
 
         # 2. On récupère le numéro ID du capteur
@@ -28,9 +28,9 @@ def insert_measure(sensor_name, value, unit):
         
         if result:
             # CORRECTION : on prend l'élément 0 du tuple pour avoir le chiffre pur
-            id_db = result 
+            id_db = result
             
-            # 3. Insertion dans la table 'mesures' (colonne horodatage)
+            # 3. Insertion dans la table 'mesures'
             sql_measure = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql_measure, (id_db, value, unit, datetime.now()))
             conn.commit()
@@ -47,22 +47,24 @@ def on_message(client, userdata, msg):
         payload = json.loads(msg.payload.decode())
         sensor_name = msg.topic.split('/')[-1]
 
-        # On ignore les messages techniques
-        if sensor_name == "bridge": return
+        # On ignore les messages de l'interface bridge
+        if sensor_name == "bridge":
+            return
 
-        # Gestion du mouvement
+        # Capteur de mouvement
         if 'occupancy' in payload:
             val = 1 if payload['occupancy'] else 0
             insert_measure(sensor_name, val, 'mouv')
 
-        # Gestion température et humidité
+        # Capteur température/humidité
         if 'temperature' in payload:
             insert_measure(sensor_name, payload['temperature'], '°C')
+            
         if 'humidity' in payload:
             insert_measure(sensor_name, payload['humidity'], '%')
 
     except Exception as e:
-        pass # On ignore les messages des prises ou autres pour nettoyer les logs
+        pass # Nettoyage des logs
 
 # --- DÉMARRAGE ---
 client = mqtt.Client()
