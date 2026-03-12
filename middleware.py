@@ -27,7 +27,7 @@ def insert_measure(sensor_name, value, unit):
         result = cursor.fetchone()
         
         if result:
-            # CORRECTION : on extrait le chiffre du tuple
+            # CORRECTION : On prend l'élément 0 du tuple pour envoyer l'entier pur à MySQL
             id_db = result
             
             # 3. Insertion dans la table 'mesures'
@@ -54,9 +54,10 @@ def on_message(client, userdata, msg):
             val = 1 if payload['occupancy'] else 0
             insert_measure(sensor_name, val, 'mouv')
 
-        # Capteur Nedis (Temperature et Humidite)
+        # Capteur Nedis (température/humidité)
         if 'temperature' in payload:
             insert_measure(sensor_name, payload['temperature'], '°C')
+            
         if 'humidity' in payload:
             insert_measure(sensor_name, payload['humidity'], '%')
 
@@ -64,10 +65,11 @@ def on_message(client, userdata, msg):
         pass 
 
 # --- DÉMARRAGE ---
-client = mqtt.Client()
+# Correction de la DeprecationWarning
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 client.on_message = on_message
 client.connect("localhost", 1883, 60)
 client.subscribe("zigbee2mqtt/+")
 
-print("Middleware opérationnel. En attente de données...")
+print("Middleware operationnel. En attente de mouvements ou changements de temperature...")
 client.loop_forever()
