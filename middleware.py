@@ -27,7 +27,7 @@ def insert_measure(sensor_name, value, unit):
         result = cursor.fetchone()
         
         if result:
-            # CORRECTION : on prend l'élément 0 du tuple pour avoir le chiffre pur
+            # CORRECTION : on extrait le chiffre du tuple
             id_db = result
             
             # 3. Insertion dans la table 'mesures'
@@ -47,24 +47,21 @@ def on_message(client, userdata, msg):
         payload = json.loads(msg.payload.decode())
         sensor_name = msg.topic.split('/')[-1]
 
-        # On ignore les messages de l'interface bridge
-        if sensor_name == "bridge":
-            return
+        if sensor_name == "bridge": return
 
         # Capteur de mouvement
         if 'occupancy' in payload:
             val = 1 if payload['occupancy'] else 0
             insert_measure(sensor_name, val, 'mouv')
 
-        # Capteur température/humidité
+        # Capteur Nedis (Temperature et Humidite)
         if 'temperature' in payload:
             insert_measure(sensor_name, payload['temperature'], '°C')
-            
         if 'humidity' in payload:
             insert_measure(sensor_name, payload['humidity'], '%')
 
     except Exception as e:
-        pass # Nettoyage des logs
+        pass 
 
 # --- DÉMARRAGE ---
 client = mqtt.Client()
@@ -72,5 +69,5 @@ client.on_message = on_message
 client.connect("localhost", 1883, 60)
 client.subscribe("zigbee2mqtt/+")
 
-print("Middleware prêt! En attente de mouvements ou changements de température...")
+print("Middleware opérationnel. En attente de données...")
 client.loop_forever()
