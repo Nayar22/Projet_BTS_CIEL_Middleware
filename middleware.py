@@ -17,24 +17,27 @@ def insert_measure(sensor_name, value, unit):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         
-        # 1. Auto-Découverte : On crée le capteur s'il n'existe pas
+        # 1. Auto-Découverte : On insère le capteur s'il n'existe pas
         sql_sensor = "INSERT IGNORE INTO capteurs (nom_piece, type_donnee, reference_zigbee) VALUES (%s, %s, %s)"
-        cursor.execute(sql_sensor, ('A definir', 'A definir', sensor_name))
+        cursor.execute(sql_sensor, ('A definir', 'Inconnu', sensor_name))
         conn.commit()
 
-        # 2. On récupère le numéro ID du capteur
+        # 2. Récupération de l'ID (Extraction du tuple forcée)
         cursor.execute("SELECT id_capteur FROM capteurs WHERE reference_zigbee = %s", (sensor_name,))
-        result = cursor.fetchone()
+        row = cursor.fetchone()
         
-        if result:
-            # CORRECTION : On prend l'élément 0 du tuple pour envoyer l'entier pur à MySQL
-            id_db = result
+        if row:
+            # ON EXTRAIT LE PREMIER ÉLÉMENT ET ON FORCE LE TYPE ENTIER [4, 5]
+            id_db = int(row) 
             
-            # 3. Insertion dans la table 'mesures'
+            # 3. Insertion de la mesure (On force le type float pour la valeur)
             sql_measure = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
-            cursor.execute(sql_measure, (id_db, value, unit, datetime.now()))
+            cursor.execute(sql_measure, (id_db, float(value), unit, datetime.now()))
+            
             conn.commit()
             print(f"OK - Enregistre : {value}{unit} pour {sensor_name} (ID: {id_db})")
+        else:
+            print(f"Erreur : Impossible de trouver l'ID pour {sensor_name}")
             
         cursor.close()
         conn.close()
@@ -49,12 +52,12 @@ def on_message(client, userdata, msg):
 
         if sensor_name == "bridge": return
 
-        # Capteur de mouvement
+        # Capteur de mouvement (Detec mouv)
         if 'occupancy' in payload:
             val = 1 if payload['occupancy'] else 0
             insert_measure(sensor_name, val, 'mouv')
 
-        # Capteur Nedis (température/humidité)
+        # Capteur température/humidité (Cap temp/humi)
         if 'temperature' in payload:
             insert_measure(sensor_name, payload['temperature'], '°C')
             
@@ -65,11 +68,11 @@ def on_message(client, userdata, msg):
         pass 
 
 # --- DÉMARRAGE ---
-# Correction de la DeprecationWarning
+# On utilise explicitement la version 1 de l'API pour supprimer le Warning [1]
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 client.on_message = on_message
 client.connect("localhost", 1883, 60)
 client.subscribe("zigbee2mqtt/+")
 
-print("Middleware operationnel. En attente de mouvements ou changements de temperature...")
+print("Middleware professionnel opérationnel. En attente de données...")
 client.loop_forever()
