@@ -17,29 +17,29 @@ def insert_measure(sensor_name, value, unit):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         
-        # 1. Tenter d'insérer le capteur s'in n'éxiste pas (Auto-Découverte)
+        # 1. Auto-Découverte : On insère le nom s'il n'existe pas
         # On utilise 'INSERT IGNORE' pour ne pas créer de doublon
-        sql_sensor = "INSERT IGNORE INTO capteurs (nom_piece, type_donnee, reference_zigbee) VALUES (%s, %s, %s)"
-        cursor.execute(sql_sensor, ('A definir', 'Inconnu', sensor_name))
+        sql_creer = "INSERT IGNORE INTO capteurs (nom_piece, type_donnee, reference_zigbee) VALUES (%s, %s, %s)"
+        cursor.execute(sql_creer, ('A definir', 'Inconnu', sensor_name))
         conn.commit()
 
-        # 2. Récuperer l'ID (qu'il vienne d''être créé ou qu'il existait déja)
+        # 2. On récupère le numéro ID correspondant
         cursor.execute("SELECT id_capteur FROM capteurs WHERE reference_zigbee = %s", (sensor_name,))
-        id_db = cursor.fetchone()
-
-        # 3. Insérer la mesure vec le bon numéro d'ID
-        sql_mesure = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
-
-        cursor.execute(sql_measure, (id_db, value, unit, datetime.now()))
-
-        conn.commit()
-        print(f"OK - Enregistre : {value}{unit} pour {sensor_name} (ID: {id_db})")
-
+        result = cursor.fetchone()
+        
+        if result:
+            id_db = result # On extrait le chiffre du tuple
+            # 3. On enregistre la valeur (Correction de la variable sql_measure)
+            sql_final = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
+            cursor.execute(sql_final, (id_db, value, unit, datetime.now()))
+            conn.commit()
+            print(f"OK - Donnee enregistree pour {sensor_name} (ID: {id_db})")
+            
         cursor.close()
         conn.close()
     except Exception as e:
-        print(f"Erreur MySQL : {e}")
-
+        print(f"Erreur Python/MySQL : {e}")
+        
 # --- LOGIQUE MQTT ---
 def on_message(client, userdata, msg):
     try:
