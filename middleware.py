@@ -17,21 +17,24 @@ def insert_measure(sensor_name, value, unit):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         
-        # 1. On cherche l'ID du capteur
-        query = "SELECT id_capteur FROM capteurs WHERE reference_zigbee = %s"
-        cursor.execute(query, (sensor_name,))
-        result = cursor.fetchone()
-        
-        if result:
-            id_db = result[0] # On utilise id_db ici (attention a l'orthographe !)
-            # 2. Insertion avec le bon nom de colonne 'horodatage'
-            sql = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
-            cursor.execute(sql, (id_db, value, unit, datetime.now()))
-            conn.commit()
-            print(f"OK - Enregistre : {value}{unit} pour {sensor_name} (ID:{id_db})")
-        else:
-            print(f"Attention : Le capteur '{sensor_name}' n'est pas dans la table 'capteurs'")
-            
+        # 1. Tenter d'insérer le capteur s'in n'éxiste pas (Auto-Découverte)
+        # On utilise 'INSERT IGNORE' pour ne pas créer de doublon
+        sql_sensor = "INSERT IGNORE INTO capteurs (nom_piece, type_donnee, reference_zigbee) VALUES (%s, %s, %s)"
+        cursor.execute(sql_sensor, ('A definir', 'Inconnu', sensor_name))
+        conn.commit()
+
+        # 2. Récuperer l'ID (qu'il vienne d''être créé ou qu'il existait déja)
+        cursor.execute("SELECT id_capteur FROM capteurs WHERE reference_zigbee = %s", (sensor_name,))
+        id_db = cursor.fetchone()
+
+        # 3. Insérer la mesure vec le bon numéro d'ID
+        sql_mesure = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
+
+        cursor.execute(sql_measure, (id_db, value, unit, datetime.now()))
+
+        conn.commit()
+        print(f"OK - Enregistre : {value}{unit} pour {sensor_name} (ID: {id_db})")
+
         cursor.close()
         conn.close()
     except Exception as e:
