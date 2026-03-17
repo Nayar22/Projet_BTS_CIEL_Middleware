@@ -47,7 +47,7 @@ TOPIC_PRISE_EXT_SET = 'zigbee2mqtt/Prise EXT/set'
 DUREE_ALLUMAGE = 10  # secondes — timer de sécurité si occupancy:False n'arrive pas
 
 timer_prise_ext = None
-prise_ext_allumee = False  # ← nouveau flag pour éviter les doublons
+prise_ext_allumee = False  # nouveau flag pour éviter les doublons
 
 # --- LOGIQUE MQTT ---
 def on_message(client, userdata, msg):
@@ -73,11 +73,11 @@ def on_message(client, userdata, msg):
             if payload['occupancy'] is True:
                 allumer_prise_ext(client)
             elif payload['occupancy'] is False:
-                # Éteindre dès que le capteur ne détecte plus rien
+               # Éteindre dès que le capteur ne détecte plus rien
                if timer_prise_ext is not None:
                    timer_prise_ext.cancel()
                eteindre_prise_ext(client)
-               print("Plus de mouvement : Prise EXT éteinte")     
+               print("Plus de mouvement : Prise EXT eteinte")     
     except Exception as e:
         print(f"Erreur traitement message MQTT : {e}")  # ✅ Erreurs visibles
 
@@ -91,13 +91,13 @@ def allumer_prise_ext(client):
             timer_prise_ext.cancel()
         timer_prise_ext = threading.Timer(DUREE_ALLUMAGE, eteindre_prise_ext, args=[client])
         timer_prise_ext.start()
-        print(f"Mouvement continu : timer réinitialisé ({DUREE_ALLUMAGE}s)")
+        print(f"Mouvement continu : timer reinitialiser ({DUREE_ALLUMAGE}s)")
         return
 
     # Première détection : allumer la prise
     client.publish(TOPIC_PRISE_EXT_SET, json.dumps({"state": "ON"}))
     prise_ext_allumee = True
-    print("Mouvement détecté : Prise EXT allumée")
+    print("Mouvement detecte : Prise EXT allumer")
 
     # Timer de sécurité (au cas où occupancy:False n'arrive jamais)
     timer_prise_ext = threading.Timer(DUREE_ALLUMAGE, eteindre_prise_ext, args=[client])
@@ -110,7 +110,7 @@ def eteindre_prise_ext(client):
     client.publish(TOPIC_PRISE_EXT_SET, json.dumps({"state": "OFF"}))
     prise_ext_allumee = False
     timer_prise_ext = None
-    print(f"Prise EXT éteinte")
+    print(f"Prise EXT eteinte")
 
 # --- DÉMARRAGE DU SERVICE ---
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
