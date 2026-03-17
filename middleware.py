@@ -2,8 +2,6 @@ import paho.mqtt.client as mqtt
 import mysql.connector
 import json
 from datetime import datetime
-import sys
-sys.stdout.reconfigure(encoding='utf-8')  # ✅ Force l'encodage UTF-8
 
 # --- CONFIGURATION ---
 DB_CONFIG = {
