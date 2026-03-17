@@ -50,7 +50,7 @@ prise_ext_allumee = False  # ← nouveau flag pour éviter les doublons
 # --- LOGIQUE MQTT ---
 def on_message(client, userdata, msg):
     try:
-        payload = json.loads(msg.payload.decode())
+        payload = json.loads(msg.payload.decode('utf-8'))
         sensor_name = msg.topic.replace('zigbee2mqtt/', '', 1)  # ✅ FIX #3
 
         # On ignore les topics systèmes de Zigbee2MQTT
