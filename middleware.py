@@ -66,11 +66,16 @@ def on_message(client, userdata, msg):
 
         if 'humidity' in payload:
             insert_measure(sensor_name, payload['humidity'], '%')
-        # ── NOUVEAU : Automatisation mouvement → Prise EXT ──────────────
+        # ── Automatisation mouvement → Prise EXT ────────────────────────────────
         if 'Dec mouv' in sensor_name and 'occupancy' in payload:
             if payload['occupancy'] is True:
                 allumer_prise_ext(client)
-
+            elif payload['occupancy'] is False:
+                # Éteindre dès que le capteur ne détecte plus rien
+               if timer_prise_ext is not None:
+                   timer_prise_ext.cancel()
+               eteindre_prise_ext(client)
+               print("Plus de mouvement → Prise EXT éteinte")     
     except Exception as e:
         print(f"Erreur traitement message MQTT : {e}")  # ✅ Erreurs visibles
 
