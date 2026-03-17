@@ -38,6 +38,15 @@ def insert_measure(sensor_name, value, unit):
     except Exception as e:
         print(f"Erreur technique MySQL : {e}")  # ✅ Plus de pass silencieux
 
+# ─── CONFIGURATION AUTOMATISATION ──────────────────────────────────────────
+import threading
+
+TOPIC_PRISE_EXT_SET = 'zigbee2mqtt/Prise EXT/set'
+DUREE_ALLUMAGE = 30  # secondes — modifiable selon le besoin
+
+# Timer global pour pouvoir le réinitialiser si quelqu'un repasse
+timer_prise_ext = None
+
 # --- LOGIQUE MQTT ---
 def on_message(client, userdata, msg):
     try:
@@ -57,9 +66,35 @@ def on_message(client, userdata, msg):
 
         if 'humidity' in payload:
             insert_measure(sensor_name, payload['humidity'], '%')
+        # ── NOUVEAU : Automatisation mouvement → Prise EXT ──────────────
+        if 'Dec mouv' in sensor_name and 'occupancy' in payload:
+            if payload['occupancy'] is True:
+                allumer_prise_ext(client)
 
     except Exception as e:
         print(f"Erreur traitement message MQTT : {e}")  # ✅ Erreurs visibles
+
+def allumer_prise_ext(client):
+    global timer_prise_ext
+
+    # Allumer la prise
+    client.publish(TOPIC_PRISE_EXT_SET, json.dumps({"state": "ON"}))
+    print("🚶 Mouvement détecté → Prise EXT allumée")
+
+    # Si un timer tourne déjà, on le réinitialise (quelqu'un repassé)
+    if timer_prise_ext is not None:
+        timer_prise_ext.cancel()
+        print("⏱️  Timer réinitialisé")
+
+    # Lancer le timer d'extinction
+    timer_prise_ext = threading.Timer(DUREE_ALLUMAGE, eteindre_prise_ext, args=[client])
+    timer_prise_ext.start()
+
+def eteindre_prise_ext(client):
+    global timer_prise_ext
+    client.publish(TOPIC_PRISE_EXT_SET, json.dumps({"state": "OFF"}))
+    print(f"💡 Prise EXT éteinte après {DUREE_ALLUMAGE}s")
+    timer_prise_ext = None
 
 # --- DÉMARRAGE DU SERVICE ---
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
