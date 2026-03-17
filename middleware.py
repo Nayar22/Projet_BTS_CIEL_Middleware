@@ -79,12 +79,12 @@ def allumer_prise_ext(client):
 
     # Allumer la prise
     client.publish(TOPIC_PRISE_EXT_SET, json.dumps({"state": "ON"}))
-    print("🚶 Mouvement détecté → Prise EXT allumée")
+    print("Mouvement détecté → Prise EXT allumée")
 
     # Si un timer tourne déjà, on le réinitialise (quelqu'un repassé)
     if timer_prise_ext is not None:
         timer_prise_ext.cancel()
-        print("⏱️  Timer réinitialisé")
+        print("Timer réinitialisé")
 
     # Lancer le timer d'extinction
     timer_prise_ext = threading.Timer(DUREE_ALLUMAGE, eteindre_prise_ext, args=[client])
@@ -93,7 +93,7 @@ def allumer_prise_ext(client):
 def eteindre_prise_ext(client):
     global timer_prise_ext
     client.publish(TOPIC_PRISE_EXT_SET, json.dumps({"state": "OFF"}))
-    print(f"💡 Prise EXT éteinte après {DUREE_ALLUMAGE}s")
+    print(f"Prise EXT éteinte après {DUREE_ALLUMAGE}s")
     timer_prise_ext = None
 
 # --- DÉMARRAGE DU SERVICE ---
