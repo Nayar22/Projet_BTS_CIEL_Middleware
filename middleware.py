@@ -2,6 +2,8 @@ import paho.mqtt.client as mqtt
 import mysql.connector
 import json
 from datetime import datetime
+import sys
+sys.stdout.reconfigure(encoding='utf-8')  # ✅ Force l'encodage UTF-8
 
 # --- CONFIGURATION ---
 DB_CONFIG = {
@@ -50,7 +52,7 @@ prise_ext_allumee = False  # ← nouveau flag pour éviter les doublons
 # --- LOGIQUE MQTT ---
 def on_message(client, userdata, msg):
     try:
-        payload = json.loads(msg.payload.decode('utf-8'))
+        payload = json.loads(msg.payload.decode())
         sensor_name = msg.topic.replace('zigbee2mqtt/', '', 1)  # ✅ FIX #3
 
         # On ignore les topics systèmes de Zigbee2MQTT
