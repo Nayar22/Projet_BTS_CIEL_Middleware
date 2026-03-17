@@ -32,7 +32,7 @@ def insert_measure(sensor_name, value, unit):
             sql_measure = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql_measure, (id_db, float(value), unit, datetime.now()))
             conn.commit()
-            print(f"Succes : {value}{unit} enregistre pour '{sensor_name}' (ID: {id_db})")
+            print(f"Succes : {value} {unit} enregistre pour '{sensor_name}' (ID: {id_db})")
             
         cursor.close()
         conn.close()
@@ -77,7 +77,7 @@ def on_message(client, userdata, msg):
                if timer_prise_ext is not None:
                    timer_prise_ext.cancel()
                eteindre_prise_ext(client)
-               print("Plus de mouvement → Prise EXT éteinte")     
+               print("Plus de mouvement : Prise EXT éteinte")     
     except Exception as e:
         print(f"Erreur traitement message MQTT : {e}")  # ✅ Erreurs visibles
 
@@ -91,13 +91,13 @@ def allumer_prise_ext(client):
             timer_prise_ext.cancel()
         timer_prise_ext = threading.Timer(DUREE_ALLUMAGE, eteindre_prise_ext, args=[client])
         timer_prise_ext.start()
-        print(f"Mouvement continu — timer réinitialisé ({DUREE_ALLUMAGE}s)")
+        print(f"Mouvement continu : timer réinitialisé ({DUREE_ALLUMAGE}s)")
         return
 
     # Première détection : allumer la prise
     client.publish(TOPIC_PRISE_EXT_SET, json.dumps({"state": "ON"}))
     prise_ext_allumee = True
-    print("Mouvement détecté → Prise EXT allumée")
+    print("Mouvement détecté : Prise EXT allumée")
 
     # Timer de sécurité (au cas où occupancy:False n'arrive jamais)
     timer_prise_ext = threading.Timer(DUREE_ALLUMAGE, eteindre_prise_ext, args=[client])
