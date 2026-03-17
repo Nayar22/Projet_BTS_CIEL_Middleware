@@ -42,7 +42,7 @@ def insert_measure(sensor_name, value, unit):
 import threading
 
 TOPIC_PRISE_EXT_SET = 'zigbee2mqtt/Prise EXT/set'
-DUREE_ALLUMAGE = 30  # secondes — modifiable selon le besoin
+DUREE_ALLUMAGE = 10  # secondes — modifiable selon le besoin
 
 # Timer global pour pouvoir le réinitialiser si quelqu'un repasse
 timer_prise_ext = None
