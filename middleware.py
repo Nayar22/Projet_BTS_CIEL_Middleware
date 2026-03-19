@@ -47,6 +47,42 @@ DUREE_ALLUMAGE = 10  # secondes — timer de sécurité si occupancy:False n'arr
 timer_prise_ext = None
 prise_ext_allumee = False  # nouveau flag pour éviter les doublons
 
+# ─── CONFIGURATION TÉLÉCOMMANDE ─────────────────────────────────────────
+TELECOMMANDE = "Tel gen"  # Nom exact dans Zigbee2MQTT
+
+PRISE_1 = "Prise 1"
+PRISE_2 = "Prise 2"
+PRISE_3 = "Prise 3"
+
+# Mapping action MQTT → (état, liste de prises)
+# O = emergency     → éteint Prise 1, 2, 3
+# I = arm_all_zones → allume Prise 1, 2, 3
+# A = arm_day_zones → toggle Prise 1
+# B = disarm        → toggle Prise 2
+ACTIONS_TELECOMMANDE = {
+    "emergency":     ("OFF",    [PRISE_1, PRISE_2, PRISE_3]),
+    "arm_all_zones": ("ON",     [PRISE_1, PRISE_2, PRISE_3]),
+    "arm_day_zones": ("TOGGLE", [PRISE_1]),
+    "disarm":        ("TOGGLE", [PRISE_2]),
+}
+
+def control_plug(client, plug_name, state):
+    """Publie une commande ON / OFF / TOGGLE sur une prise Zigbee"""
+    topic = f"zigbee2mqtt/{plug_name}/set"
+    payload = json.dumps({"state": state})
+    client.publish(topic, payload)
+    print(f"  -> Commande {state} envoyee a '{plug_name}'")
+
+def handle_remote(client, action):
+    """Gere les boutons de la telecommande"""
+    if action not in ACTIONS_TELECOMMANDE:
+        print(f"Action telecommande inconnue ignoree : '{action}'")
+        return
+    state, prises = ACTIONS_TELECOMMANDE[action]
+    print(f"Telecommande : action '{action}' -> {state} sur {prises}")
+    for prise in prises:
+        control_plug(client, prise, state)
+
 # --- LOGIQUE MQTT ---
 def on_message(client, userdata, msg):
     try:
@@ -56,6 +92,13 @@ def on_message(client, userdata, msg):
         # On ignore les topics systèmes de Zigbee2MQTT
         if 'bridge' in sensor_name:
             return
+
+        # ── Gestion de la télécommande ───────────────────────────────────────
+        if sensor_name == TELECOMMANDE:
+            action = payload.get('action', '')
+            if action:
+                handle_remote(client, action)
+            return  # On ne stocke pas les actions télécommande en BDD
 
         if 'occupancy' in payload:
             val = 1 if payload['occupancy'] else 0
