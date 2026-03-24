@@ -17,7 +17,8 @@ def insert_measure(sensor_name, value, unit):
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         
-        sql_sensor = "INSERT INTO capteurs (nom_piece, type_donnee, reference_zigbee) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE reference_zigbee = reference_zigbee"
+        sql_sensor = """INSERT INTO capteurs (nom_piece, type_donnee, reference_zigbee) VALUES (%s, %s, %s) 
+        ON DUPLICATE KEY UPDATE reference_zigbee = reference_zigbee"""
         cursor.execute(sql_sensor, ('A definir', 'A definir', sensor_name))
         conn.commit()
 
