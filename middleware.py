@@ -3,7 +3,7 @@ import mysql.connector
 import json
 from datetime import datetime
 
-# --- CONFIGURATION ---
+# ─── CONFIGURATION ───────────────────────────────────────
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'admin_projet',
@@ -11,7 +11,7 @@ DB_CONFIG = {
     'database': 'domotique_db'
 }
 
-# --- LOGIQUE BASE DE DONNÉES ---
+# ─── LOGIQUE BASE DE DONNÉES ───────────────────────────────────────
 def insert_measure(sensor_name, value, unit):
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
@@ -25,7 +25,7 @@ def insert_measure(sensor_name, value, unit):
         result = cursor.fetchone()
         
         if result:
-            id_db = int(result[0])  # ✅ FIX #1
+            id_db = int(result[0])  # Pour avoir un entiet plutot qu'un tuple
             
             sql_measure = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql_measure, (id_db, float(value), unit, datetime.now()))
@@ -36,7 +36,7 @@ def insert_measure(sensor_name, value, unit):
         conn.close()
 
     except Exception as e:
-        print(f"Erreur technique MySQL : {e}")  # ✅ Plus de pass silencieux
+        print(f"Erreur technique MySQL : {e}")  # Plus de pass silencieux
 
 # ─── CONFIGURATION AUTOMATISATION ───────────────────────────────────────
 import threading
@@ -83,11 +83,11 @@ def handle_remote(client, action):
     for prise in prises:
         control_plug(client, prise, state)
 
-# --- LOGIQUE MQTT ---
+# ─── LOGIQUE MQTT ───────────────────────────────────────
 def on_message(client, userdata, msg):
     try:
         payload = json.loads(msg.payload.decode())
-        sensor_name = msg.topic.replace('zigbee2mqtt/', '', 1)  # ✅ FIX #3
+        sensor_name = msg.topic.replace('zigbee2mqtt/', '', 1)  # donne bien "Cap temp/humi"
 
         # On ignore les topics systèmes de Zigbee2MQTT
         if 'bridge' in sensor_name:
@@ -120,7 +120,7 @@ def on_message(client, userdata, msg):
                eteindre_prise_ext(client)
                print("Plus de mouvement : Prise EXT eteinte")     
     except Exception as e:
-        print(f"Erreur traitement message MQTT : {e}")  # ✅ Erreurs visibles
+        print(f"Erreur traitement message MQTT : {e}")  
 
 
 def allumer_prise_ext(client):
@@ -153,10 +153,10 @@ def eteindre_prise_ext(client):
     timer_prise_ext = None
     print(f"Prise EXT eteinte")
 
-# --- DÉMARRAGE DU SERVICE ---
+# ── DÉMARRAGE DU SERVICE ───────────────────────────────────────
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 client.on_message = on_message
 client.connect("localhost", 1883, 60)
-client.subscribe("zigbee2mqtt/#")  # ✅ FIX #2
+client.subscribe("zigbee2mqtt/#")  # capte TOUS les niveaux
 print("Middleware operationnel. En attente de donnees des capteurs...")
 client.loop_forever()
