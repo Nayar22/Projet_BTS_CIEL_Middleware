@@ -42,7 +42,7 @@ def insert_measure(sensor_name, value, unit):
 import threading
 
 TOPIC_PRISE_EXT_SET = 'zigbee2mqtt/Prise EXT/set'
-DUREE_ALLUMAGE = 10  # secondes — timer de sécurité si occupancy:False n'arrive pas
+DUREE_ALLUMAGE = 15  # secondes — timer de sécurité si occupancy:False n'arrive pas
 
 timer_prise_ext = None
 prise_ext_allumee = False  # nouveau flag pour éviter les doublons
