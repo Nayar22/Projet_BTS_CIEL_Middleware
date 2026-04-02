@@ -3,11 +3,9 @@ const mysql = require('mysql2');
 const cors = require('cors');
 const app = express();
 const port = 3000;
-
 // Configuration CORS : Indispensable pour Etudiant 3 (app mobile)
 app.use(cors());
 app.use(express.json());
-
 // Configuration de la connexion a la base de données
 const db = mysql.createConnection({
   host: 'localhost',
@@ -15,7 +13,6 @@ const db = mysql.createConnection({
   password: 'bts2026',
   database: 'domotique_db'
 });
-
 db.connect(err => {
   if (err) {
     console.error('Erreur de connexion a la base MariaDB :', err.message);
@@ -24,6 +21,57 @@ db.connect(err => {
     console.log('API connectee avec succes a MariaDB sur le Pi.');
   }
 });
+
+// ── Connexion MQTT pour le contrôle des prises ──────────────────────────
+const mqtt = require('mqtt');
+
+const mqttClient = mqtt.connect('mqtt://localhost:1883');
+mqttClient.on('connect', () => {
+  console.log('API connectee au broker MQTT.');
+});
+
+// Fonction utilitaire : envoie une commande ON/OFF/TOGGLE a une prise
+function commandePrise(nomPrise, etat, res) {
+  const topic = `zigbee2mqtt/${nomPrise}/set`;
+  const payload = JSON.stringify({ state: etat });
+  mqttClient.publish(topic, payload, (err) => {
+    if (err) {
+      console.error(`Erreur MQTT : ${err.message}`);
+      return res.status(500).json({ error: 'Erreur envoi commande MQTT' });
+    }
+    console.log(`Commande ${etat} envoyee a '${nomPrise}'`);
+    res.json({ success: true, prise: nomPrise, etat: etat });
+  });
+}
+
+// Controle individuel : POST /api/prises/Prise 1/on  ou  /off  ou  /toggle
+app.post('/api/prises/:nom/:etat', (req, res) => {
+  const nom = req.params.nom;
+  const etat = req.params.etat.toUpperCase();
+
+  if (!['ON', 'OFF', 'TOGGLE'].includes(etat)) {
+    return res.status(400).json({ error: 'Etat invalide. Utiliser ON, OFF ou TOGGLE' });
+  }
+  commandePrise(nom, etat, res);
+});
+
+// Controle global : POST /api/prises/all/on  ou  /off
+app.post('/api/prises/all/:etat', (req, res) => {
+  const etat = req.params.etat.toUpperCase();
+
+  if (!['ON', 'OFF'].includes(etat)) {
+    return res.status(400).json({ error: 'Etat invalide. Utiliser ON ou OFF' });
+  }
+
+  const prises = ['Prise 1', 'Prise 2', 'Prise 3'];
+  prises.forEach(p => {
+    mqttClient.publish(`zigbee2mqtt/${p}/set`, JSON.stringify({ state: etat }));
+    console.log(`Commande ${etat} envoyee a '${p}'`);
+  });
+
+  res.json({ success: true, prises: prises, etat: etat });
+});
+// ────────────────────────────────────────────────────────────────────────
 
 //Route Principale pour l'etudiant 3 : Récuperer les dernières mesures
 app.get('/api/mesures/last', (req,res) => {
@@ -42,7 +90,6 @@ app.get('/api/mesures/last', (req,res) => {
     res.json(results);
   });
 });
-
 //Lancement du serveur
 app.listen(port, () => {
   console.log(`API Domotique active sur le port ${port}`);
