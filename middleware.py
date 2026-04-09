@@ -67,7 +67,7 @@ ACTIONS_TELECOMMANDE = {
 }
 
 # ─── CONFIGURATION SEUIL TEMPÉRATURE ────────────────────────────────────
-SEUIL_TEMP_MIN = 26.0        # °C — en dessous : radiateur ON
+SEUIL_TEMP_MIN = 19.0        # °C — en dessous : radiateur ON
 PRISE_RADIATEUR = "Prise 1"  # Prise sur laquelle est branché le radiateur
 radiateur_allume = False      # Flag pour éviter les doublons de commande
 
