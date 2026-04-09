@@ -66,6 +66,12 @@ ACTIONS_TELECOMMANDE = {
     "disarm":        ("TOGGLE", [PRISE_2]),
 }
 
+# ─── CONFIGURATION SEUIL TEMPÉRATURE ────────────────────────────────────
+SEUIL_TEMP_MIN = 18.0        # °C — en dessous : radiateur ON
+PRISE_RADIATEUR = "Prise 1"  # Prise sur laquelle est branché le radiateur
+radiateur_allume = False      # Flag pour éviter les doublons de commande
+
+
 def control_plug(client, plug_name, state):
     """Publie une commande ON / OFF / TOGGLE sur une prise Zigbee"""
     topic = f"zigbee2mqtt/{plug_name}/set"
@@ -106,6 +112,7 @@ def on_message(client, userdata, msg):
 
         if 'temperature' in payload:
             insert_measure(sensor_name, payload['temperature'], '°C')
+            gerer_seuil_temperature(client, payload['temperature'])   # pour gérer la température
 
         if 'humidity' in payload:
             insert_measure(sensor_name, payload['humidity'], '%')
@@ -153,6 +160,19 @@ def eteindre_prise_ext(client):
     timer_prise_ext = None
     print(f"Prise EXT eteinte")
 
+def gerer_seuil_temperature(client, temperature):
+    global radiateur_allume
+
+    if temperature < SEUIL_TEMP_MIN and not radiateur_allume:
+        client.publish(f"zigbee2mqtt/{PRISE_RADIATEUR}/set", json.dumps({"state": "ON"}))
+        radiateur_allume = True
+        print(f"Temp {temperature}C < {SEUIL_TEMP_MIN}C : Radiateur ON")
+
+    elif temperature >= SEUIL_TEMP_MIN and radiateur_allume:
+        client.publish(f"zigbee2mqtt/{PRISE_RADIATEUR}/set", json.dumps({"state": "OFF"}))
+        radiateur_allume = False
+        print(f"Temp {temperature}C >= {SEUIL_TEMP_MIN}C : Radiateur OFF")
+        
 # ── DÉMARRAGE DU SERVICE ───────────────────────────────────────
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 client.on_message = on_message
