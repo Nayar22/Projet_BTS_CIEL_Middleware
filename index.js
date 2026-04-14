@@ -90,6 +90,46 @@ app.get('/api/mesures/last', (req,res) => {
     res.json(results);
   });
 });
+
+// ── Contrôle de l'ampoule Amp zig ───────────────────────────────────────
+const TOPIC_LAMPE = 'zigbee2mqtt/Amp zig/set';
+
+// ✅ Routes spécifiques EN PREMIER
+// Luminosité : POST /api/lampe/brightness/:valeur  (0 à 254)
+app.post('/api/lampe/brightness/:valeur', (req, res) => {
+  const valeur = parseInt(req.params.valeur);
+  if (isNaN(valeur) || valeur < 0 || valeur > 254) {
+    return res.status(400).json({ error: 'Valeur invalide. Entre 0 et 254' });
+  }
+  mqttClient.publish(TOPIC_LAMPE, JSON.stringify({ brightness: valeur }));
+  console.log(`Lampe : luminosite ${valeur}`);
+  res.json({ success: true, brightness: valeur });
+});
+
+// Couleur : POST /api/lampe/color  avec body JSON { "r": 255, "g": 0, "b": 128 }
+app.post('/api/lampe/color', (req, res) => {
+  const { r, g, b } = req.body;
+  if (r === undefined || g === undefined || b === undefined) {
+    return res.status(400).json({ error: 'Body invalide. Fournir r, g, b (0-255)' });
+  }
+  mqttClient.publish(TOPIC_LAMPE, JSON.stringify({ color: { r, g, b } }));
+  console.log(`Lampe : couleur R${r} G${g} B${b}`);
+  res.json({ success: true, color: { r, g, b } });
+});
+
+// Route générique EN DERNIER
+// Allumer / Éteindre : POST /api/lampe/on  ou  /off
+app.post('/api/lampe/:etat', (req, res) => {
+  const etat = req.params.etat.toUpperCase();
+  if (!['ON', 'OFF'].includes(etat)) {
+    return res.status(400).json({ error: 'Etat invalide. Utiliser ON ou OFF' });
+  }
+  mqttClient.publish(TOPIC_LAMPE, JSON.stringify({ state: etat }));
+  console.log(`Lampe : ${etat}`);
+  res.json({ success: true, etat: etat });
+});
+// ────────────────────────────────────────────────────────────────────────
+
 //Lancement du serveur
 app.listen(port, () => {
   console.log(`API Domotique active sur le port ${port}`);
