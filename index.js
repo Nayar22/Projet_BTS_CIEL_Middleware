@@ -94,7 +94,7 @@ app.get('/api/mesures/last', (req,res) => {
 // ── Contrôle de l'ampoule Amp zig ───────────────────────────────────────
 const TOPIC_LAMPE = 'zigbee2mqtt/Amp zig/set';
 
-// ✅ Routes spécifiques EN PREMIER
+// Routes spécifiques EN PREMIER
 // Luminosité : POST /api/lampe/brightness/:valeur  (0 à 254)
 app.post('/api/lampe/brightness/:valeur', (req, res) => {
   const valeur = parseInt(req.params.valeur);
