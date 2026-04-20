@@ -127,8 +127,8 @@ def on_message(client, userdata, msg):
                eteindre_prise_ext(client)
                print("Plus de mouvement : Prise EXT eteinte")  
         # -- Luminosité --
-        if "illuminance_lux" in payload:
-            insert_measure('Dec mouv_lux', payload["illuminance_lux"], 'lx')
+        if "illuminance" in payload:
+            insert_measure('Dec mouv_lux', payload["illuminance"], 'lx')
     except Exception as e:
         print(f"Erreur traitement message MQTT : {e}")  
 
