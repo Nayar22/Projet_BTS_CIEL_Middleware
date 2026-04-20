@@ -126,18 +126,9 @@ def on_message(client, userdata, msg):
                    timer_prise_ext.cancel()
                eteindre_prise_ext(client)
                print("Plus de mouvement : Prise EXT eteinte")  
-        # -- Luminosité (NOUVEAU) --
+        # -- Luminosité --
         if "illuminance_lux" in payload:
-            lux = payload["illuminance_lux"]
-            curseur.execute("""
-                INSERT INTO mesures (id_capteur, valeur, unite)
-                SELECT id_capteur, %s, 'lx'
-                FROM capteurs
-                WHERE reference_zigbee = 'Dec mouv_lux' AND type_donnee = 'Luminosité'
-                LIMIT 1
-            """, (lux,))
-            connexion.commit()
-            print(f"[Dec mouv] Luminosité : {lux} lx")
+            insert_measure('Dec mouv_lux', payload["illuminance_lux"], 'lx')
     except Exception as e:
         print(f"Erreur traitement message MQTT : {e}")  
 
