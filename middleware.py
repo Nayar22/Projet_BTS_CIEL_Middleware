@@ -127,8 +127,8 @@ def on_message(client, userdata, msg):
                eteindre_prise_ext(client)
                print("Plus de mouvement : Prise EXT eteinte")  
         # -- Luminosité (NOUVEAU) --
-        if "illuminance_lux" in data:
-            lux = data["illuminance_lux"]
+        if "illuminance_lux" in payload:
+            lux = payload["illuminance_lux"]
             curseur.execute("""
                 INSERT INTO mesures (id_capteur, valeur, unite)
                 SELECT id_capteur, %s, 'lx'
