@@ -138,8 +138,8 @@ def on_message(client, userdata, msg):
             """, (lux,))
             connexion.commit()
             print(f"[Dec mouv] Luminosité : {lux} lx")
-        except Exception as e:
-            print(f"Erreur traitement message MQTT : {e}")  
+    except Exception as e:
+        print(f"Erreur traitement message MQTT : {e}")  
 
 
 def allumer_prise_ext(client):
