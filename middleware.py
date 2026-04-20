@@ -125,9 +125,21 @@ def on_message(client, userdata, msg):
                if timer_prise_ext is not None:
                    timer_prise_ext.cancel()
                eteindre_prise_ext(client)
-               print("Plus de mouvement : Prise EXT eteinte")     
-    except Exception as e:
-        print(f"Erreur traitement message MQTT : {e}")  
+               print("Plus de mouvement : Prise EXT eteinte")  
+        # -- Luminosité (NOUVEAU) --
+        if "illuminance_lux" in data:
+            lux = data["illuminance_lux"]
+            curseur.execute("""
+                INSERT INTO mesures (id_capteur, valeur, unite)
+                SELECT id_capteur, %s, 'lx'
+                FROM capteurs
+                WHERE reference_zigbee = 'Dec mouv'AND type_donnee = 'Luminosité'
+                LIMIT 1
+            """, (lux,))
+            connexion.commit()
+            print(f"[Dec mouv] Luminosité : {lux} lx")
+        except Exception as e:
+            print(f"Erreur traitement message MQTT : {e}")  
 
 
 def allumer_prise_ext(client):
