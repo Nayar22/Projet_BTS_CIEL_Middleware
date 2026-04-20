@@ -133,7 +133,7 @@ def on_message(client, userdata, msg):
                 INSERT INTO mesures (id_capteur, valeur, unite)
                 SELECT id_capteur, %s, 'lx'
                 FROM capteurs
-                WHERE reference_zigbee = 'Dec mouv'AND type_donnee = 'Luminosité'
+                WHERE reference_zigbee = 'Dec mouv_lux' AND type_donnee = 'Luminosité'
                 LIMIT 1
             """, (lux,))
             connexion.commit()
