@@ -25,7 +25,7 @@ def insert_measure(sensor_name, value, unit):
         result = cursor.fetchone()
         
         if result:
-            id_db = int(result[0])  # Pour avoir un entiet plutot qu'un tuple
+            id_db = int(result[0])  # Pour avoir un entier plutot qu'un tuple
             
             sql_measure = "INSERT INTO mesures (id_capteur, valeur, unite, horodatage) VALUES (%s, %s, %s, %s)"
             cursor.execute(sql_measure, (id_db, float(value), unit, datetime.now()))
