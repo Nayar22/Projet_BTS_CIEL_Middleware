@@ -66,11 +66,16 @@ ACTIONS_TELECOMMANDE = {
     "disarm":        ("TOGGLE", [PRISE_2]),
 }
 
-# ─── CONFIGURATION SEUIL TEMPÉRATURE ────────────────────────────────────
+# ─── CONFIGURATION SEUIL TEMPÉRATURE RADIATEUR ────────────────────────────────────
 SEUIL_TEMP_MIN = 19.0        # °C — en dessous : radiateur ON
 PRISE_RADIATEUR = "Prise 1"  # Prise sur laquelle est branché le radiateur
 radiateur_allume = False      # Flag pour éviter les doublons de commande
 
+# ─── CONFIGURATION SEUIL TEMPÉRATURE VENTILATEUR ────────────────────────────────────
+SEUIL_TEMP_MAX = 25.0        # °C — au dessus : ventilateur ON
+SEUIL_TEMP_RETOUR = 23.0     # °C — en dessous : ventilateur OFF
+PRISE_VENTILATEUR = "Prise 2"
+ventilateur_allume = False
 
 def control_plug(client, plug_name, state):
     """Publie une commande ON / OFF / TOGGLE sur une prise Zigbee"""
@@ -176,6 +181,19 @@ def gerer_seuil_temperature(client, temperature):
         client.publish(f"zigbee2mqtt/{PRISE_RADIATEUR}/set", json.dumps({"state": "OFF"}))
         radiateur_allume = False
         print(f"Temp {temperature}C >= {SEUIL_TEMP_MIN}C : Radiateur OFF")
+
+def gerer_seuil_ventilateur(client, temperature):
+    global ventilateur_allume
+
+    if temperature > SEUIL_TEMP_MAX and not ventilateur_allume:
+        client.publish(f"zigbee2mqtt/{PRISE_VENTILATEUR}/set", json.dumps({"state": "ON"}))
+        ventilateur_allume = True
+        print(f"Temp {temperature}C > {SEUIL_TEMP_MAX}C : Ventilateur ON")
+
+    elif temperature <= SEUIL_TEMP_RETOUR and ventilateur_allume:
+        client.publish(f"zigbee2mqtt/{PRISE_VENTILATEUR}/set", json.dumps({"state": "OFF"}))
+        ventilateur_allume = False
+        print(f"Temp {temperature}C <= {SEUIL_TEMP_RETOUR}C : Ventilateur OFF")
         
 # ── DÉMARRAGE DU SERVICE ───────────────────────────────────────
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
