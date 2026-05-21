@@ -112,7 +112,8 @@ def on_message(client, userdata, msg):
 
         if 'temperature' in payload:
             insert_measure(sensor_name, payload['temperature'], '°C')
-            gerer_seuil_temperature(client, payload['temperature'])   # pour gérer la température
+            gerer_seuil_temperature(client, payload['temperature'])   # gérer la température radiateur
+            gerer_seuil_ventilateur(client, payload['temperature'])   # gérer le température avec le ventilateur
 
         if 'humidity' in payload:
             insert_measure(sensor_name, payload['humidity'], '%')
