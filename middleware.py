@@ -117,7 +117,7 @@ def on_message(client, userdata, msg):
 
         if 'temperature' in payload:
             insert_measure(sensor_name, payload['temperature'], '°C')
-            gerer_seuil_temperature(client, payload['temperature'])   # gérer la température radiateur
+            gerer_seuil_radiateur(client, payload['temperature'])   # gérer la température radiateur
             gerer_seuil_ventilateur(client, payload['temperature'])   # gérer le température avec le ventilateur
 
         if 'humidity' in payload:
@@ -169,7 +169,7 @@ def eteindre_prise_ext(client):
     timer_prise_ext = None
     print(f"Prise EXT eteinte")
 
-def gerer_seuil_temperature(client, temperature):
+def gerer_seuil_radiateur(client, temperature):
     global radiateur_allume
 
     if temperature < SEUIL_TEMP_MIN and not radiateur_allume:
