@@ -72,7 +72,7 @@ PRISE_RADIATEUR = "Prise 1"  # Prise sur laquelle est branché le radiateur
 radiateur_allume = False      # Flag pour éviter les doublons de commande
 
 # ─── CONFIGURATION SEUIL TEMPÉRATURE VENTILATEUR ────────────────────────────────────
-SEUIL_TEMP_MAX = 25.0        # °C — au dessus : ventilateur ON
+SEUIL_TEMP_MAX = 29.0        # °C — au dessus : ventilateur ON
 SEUIL_TEMP_RETOUR = 23.0     # °C — en dessous : ventilateur OFF
 PRISE_VENTILATEUR = "Prise 2"
 ventilateur_allume = False
